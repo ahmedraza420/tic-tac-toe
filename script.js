@@ -4,13 +4,29 @@ function createGameBoard(size = 3) {
     const board = [];
 
     //create board based on size
-    
+    for (let i = 0; i < size; i++) {
+        board.push([]);
+        for (let j = 0; j < size; j++) {
+            board[i].push(Unit());
+        }
+    }
+
     //getBoard();
+    const getBoard = () => board;
 
     //placeToken();
+    const placeToken = (row, column, playerToken) => {
+        if (board[row][column].getValue() == 0) board[row][column].addToken(playerToken);
+    };
     
     //renderBoard() [only while in console]
-    
+    function renderBoard() {
+        board.forEach(row => {
+            const markerBoard = row.map(unit => unit.getValue());
+            console.log(markerBoard.join("  "));
+        });
+    }
+
     return {getBoard, placeToken, renderBoard};
 }
 
@@ -28,7 +44,7 @@ function Unit() {
 
 function gameController(playerOneName = "Player One", playerOneMark = "X", playerTwoName = "Player Two", playerTwoMark = "O") {
     // initialize gameBoard
-    // const board = createGameBoard();  //will initialize the gameboard once I complete createGameBoard().
+    const board = createGameBoard();
 
     // players objects
     const players = [
@@ -47,13 +63,16 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
 
     // renderNewRound();
     const renderNewRound = () => {
-        // board.renderBoard(); // will uncomment this once board is initialized
+        board.renderBoard();
         console.log(`It's ${getActivePlayer().name}'s turn. [${getActivePlayer().marker}]`)
     };
 
     // playRound() -> placeToken -> change turn -> renderNewRound
     const playRound = (row, column) => {
-
+        console.log(`placing player's mark on row ${row} and column ${column}`);
+        board.placeToken(row, column, getActivePlayer().marker);
+        switchTurn();
+        renderNewRound();   
     };
 
     // renderNewRound [for the first time]
