@@ -48,7 +48,13 @@ function createGameBoard(size = 3) {
             }}, ""));
     }
 
-    return {getBoard, placeToken, renderBoard};
+    const resetBoard = () => {
+        board.forEach(unit => unit.addToken(undefined));
+    };
+
+    const getTotalSize = () => size * size;
+
+    return {getBoard, placeToken, renderBoard, getTotalSize, resetBoard};
 }
 
 function Unit() {
@@ -80,8 +86,8 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
     };
 
     const players = [
-        {name : playerOneName, marker : playerOneMark}, 
-        {name : playerTwoName, marker : playerTwoMark}
+        {name : playerOneName, marker : playerOneMark, wins : 0}, 
+        {name : playerTwoName, marker : playerTwoMark, wins : 0}
     ];
     
     let activePlayer = players[0];
@@ -95,12 +101,25 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
         console.log(`It's ${activePlayer.name}'s turn. [${activePlayer.marker}]`)
     };
     
+    let round = 0;
+
     function playRound(index) {
         if(board.placeToken(index , activePlayer.marker)) {
-            console.log(`placing player's mark on slot ${index}`);
-            if (checkWin(index, activePlayer.marker)) console.log(`${activePlayer.name} is the winner`);
-            switchTurn();
-            renderNewRound();   
+            // console.log(`placing player's mark on slot ${index}`);
+            if (checkWin(index, activePlayer.marker)) {
+                console.log(`%c${activePlayer.name} wins`, "color: green; font-size: 1.3rem");
+                board.renderBoard();
+                console.log(getWins());
+                gameOver();
+            }
+            else {
+                switchTurn();
+                renderNewRound();   
+                if (isDraw()) {
+                    console.log(getWins());
+                    gameOver();
+                };
+            }
         }
     }
 
@@ -154,6 +173,27 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
     };
 
     const getWinningConditions = () => winningConditions; // temporary
+    
+    const isDraw = () => {
+        round++;
+        if (round == board.getTotalSize()) {
+            console.log("%cIt's a draw", "color: brown; font-size: 1.2rem");
+            gameOver();
+        }
+    }
 
-    return {playRound, getActivePlayer, setBoardSize, getWinningConditions};
+    const gameOver = () => {
+        board.resetBoard();
+        round = 0;
+        getActivePlayer().wins++;
+        getWins();
+        console.log("%cNew Game", "font-size: 1.2rem; color: blue;");
+        renderNewRound();
+    };
+
+    const getWins = () => {
+        return players.map(player => player.wins);
+    }
+
+    return {playRound, getActivePlayer, setBoardSize, getWinningConditions, getWins};
 }
