@@ -61,6 +61,15 @@ function Unit() {
 }
 
 function gameController(playerOneName = "Player One", playerOneMark = "X", playerTwoName = "Player Two", playerTwoMark = "O") {
+    if (playerOneMark == playerTwoMark) {
+        console.log("Both Players can't have the same Mark");
+        return;
+    }
+    if (playerOneName == playerTwoName) {
+        playerOneName += " 1";
+        playerTwoName += " 2";
+    }
+
     const board = createGameBoard();
 
     const players = [
