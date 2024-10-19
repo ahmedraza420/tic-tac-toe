@@ -124,30 +124,23 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
 
     renderNewRound();
 
-
-    // This will create a winningConditions array 
-    // Need to improve this function
     const createWinningConditions = (size = 3) => {
         let array = [];
-          for (let j = 0; j < size; j++) { 
-              array.push([]);
-              for (let k = 0; k < size; k++) {
-                  array[j].push(j * size + k);
-                }
+        for (let i = 0; i < size; i++) {
+            let row = [], col = [];
+            for (let j = 0; j < size; j++) {
+                row.push(i * size + j);
+                col.push(j * size + i);
             }
-            for (let l = 0; l < size; l++) { 
-              array.push([]);
-            for (let m = 0; m < size; m++) {
-              array[l + size].push(m * size + l);
-            }
+            array.push(row, col);
+        }
+        
+        let diagonal1 = [], diagonal2 = [];
+          for (let i = 0; i < size; i++) {
+             diagonal1.push(i * (size + 1));
+             diagonal2.push((i + 1) * (size - 1))
           }
-          for (let n = 0; n < 2; n++) { 
-              array.push([]);
-              for (let o = 0; o < size; o++) {
-                n == 0 ? array[n + size * 2].push(o * (size + 1)) : array[n + size * 2].push((size - 1) + o * (size - 1));
-              }
-          }
-          
+          array.push(diagonal1, diagonal2);
           return array;
         };
     
@@ -158,8 +151,6 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
         return winningConditions.filter(conditions => conditions.includes(index))
         .some(condition => condition.every(position =>board.getBoard()[position].getValue() == activePlayerMarker))
     };
-
-    const getWinningConditions = () => winningConditions; // temporary
     
     const isDraw = () => {
         round++;
@@ -182,5 +173,5 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
         return players.map(player => player.wins);
     }
 
-    return {playRound, getActivePlayer, setBoardSize, getWinningConditions, getWins};
+    return {playRound, getActivePlayer, setBoardSize, getWins};
 }
