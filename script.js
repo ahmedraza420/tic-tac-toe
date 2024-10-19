@@ -3,27 +3,47 @@ const game = gameController();
 function createGameBoard(size = 3) {
     const board = [];
 
-    //create board based on size
     for (let i = 0; i < size; i++) {
         board.push([]);
         for (let j = 0; j < size; j++) {
             board[i].push(Unit());
         }
     }
-
-    //getBoard();
+    
     const getBoard = () => board;
 
-    //placeToken();
     const placeToken = (row, column, playerToken) => {
-        if (board[row][column].getValue() == 0) board[row][column].addToken(playerToken);
+        const checkValidity = (row, column) => {
+            if (row >= size || column >= size || row < 0 || column < 0){
+                return `Position with Row ${row} and Column ${column} doesn't exist in the game!`;
+            }
+            else if (isNaN(row) || isNaN(column)) {
+                return `You provided the wrong input!`;
+            }
+            else if (board[row][column].getValue()) {
+                return `This place has already been occupied!`;
+            } 
+            else {
+                return;
+            }
+        };
+
+        const errorMessage = checkValidity(row, column);
+        
+        if (!errorMessage) {
+            board[row][column].addToken(playerToken);
+            return true;
+        }
+        else {
+            console.log(errorMessage);
+            return false;
+        }
     };
-    
-    //renderBoard() [only while in console]
-    function renderBoard() {
+
+    function renderBoard() { // just for console
         board.forEach(row => {
-            const markerBoard = row.map(unit => unit.getValue());
-            console.log(markerBoard.join("  "));
+            const markerBoard = row.map(unit => unit.getValue() ? unit.getValue() : " ");
+            console.log(markerBoard.join(" | "));
         });
     }
 
@@ -31,51 +51,42 @@ function createGameBoard(size = 3) {
 }
 
 function Unit() {
-    let value = 0;
+    let value;
 
-    // addToken();
-    const addToken = (playerToken) => {value = playerToken};
+    const addToken = (playerToken) => {value = playerToken}; 
 
-    // getValue();
     const getValue = () => value;
-
+    
     return {addToken, getValue};
 }
 
 function gameController(playerOneName = "Player One", playerOneMark = "X", playerTwoName = "Player Two", playerTwoMark = "O") {
-    // initialize gameBoard
     const board = createGameBoard();
 
-    // players objects
     const players = [
         {name : playerOneName, marker : playerOneMark}, 
         {name : playerTwoName, marker : playerTwoMark}
     ];
-
-    // assign a player's turn
-    let activePlayer = players[0];  
-
-    // switchTurn();
+    
+    let activePlayer = players[0];
+    
     const switchTurn = () => activePlayer = activePlayer == players[0] ? players[1] : players[0];
      
-    // getActivePlayer();
     const getActivePlayer = () => activePlayer;
 
-    // renderNewRound();
     const renderNewRound = () => {
         board.renderBoard();
         console.log(`It's ${getActivePlayer().name}'s turn. [${getActivePlayer().marker}]`)
     };
-
-    // playRound() -> placeToken -> change turn -> renderNewRound
-    const playRound = (row, column) => {
+    
+    function playRound(row, column) {
         console.log(`placing player's mark on row ${row} and column ${column}`);
-        board.placeToken(row, column, getActivePlayer().marker);
-        switchTurn();
-        renderNewRound();   
-    };
+        if(board.placeToken(row, column, getActivePlayer().marker)) {
+            switchTurn();
+            renderNewRound();   
+        }
+    }
 
-    // renderNewRound [for the first time]
     renderNewRound();
 
     return {playRound, getActivePlayer};
