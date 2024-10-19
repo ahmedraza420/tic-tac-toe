@@ -71,7 +71,13 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
         playerTwoName += " 2";
     }
 
-    const board = createGameBoard();
+    let board = createGameBoard();
+    
+    const setBoardSize = (size) => {
+        // board = createGameBoard(size)
+        // winningConditions = createWinningConditions(size);
+        // renderNewRound();   
+    };
 
     const players = [
         {name : playerOneName, marker : playerOneMark}, 
@@ -86,12 +92,13 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
 
     const renderNewRound = () => {
         board.renderBoard();
-        console.log(`It's ${getActivePlayer().name}'s turn. [${getActivePlayer().marker}]`)
+        console.log(`It's ${activePlayer.name}'s turn. [${activePlayer.marker}]`)
     };
     
     function playRound(index) {
-        if(board.placeToken(index , getActivePlayer().marker)) {
+        if(board.placeToken(index , activePlayer.marker)) {
             console.log(`placing player's mark on slot ${index}`);
+            if (checkWin(index, activePlayer.marker)) console.log(`${activePlayer.name} is the winner`);
             switchTurn();
             renderNewRound();   
         }
@@ -99,5 +106,54 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
 
     renderNewRound();
 
-    return {playRound, getActivePlayer};
+
+    // This will create a winningConditions array 
+    // Need to improve this function
+    // for now I will opt to create an array myself to check the game
+    // const createWinningConditions = (size = 3) => {
+    //     let array = [];
+    //       for (let j = 0; j < size; j++) { 
+    //           array.push([]);
+    //           for (let k = 0; k < size; k++) {
+    //               array[j].push(j * size + k);
+    //             }
+    //         }
+    //         for (let l = 0; l < size; l++) { 
+    //           array.push([]);
+    //         for (let m = 0; m < size; m++) {
+    //           array[l + size].push(m * size + l);
+    //         }
+    //       }
+    //       for (let n = 0; n < 2; n++) { 
+    //           array.push([]);
+    //           for (let o = 0; o < size; o++) {
+    //             n == 0 ? array[n + size * 2].push(o * (size + 1)) : array[n + size * 2].push((size - 1) + o * (size - 1));
+    //           }
+    //       }
+          
+    //       return array;
+    //     };
+        
+    let winningConditions = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+    
+    // let winningConditions = createWinningConditions();    
+    
+    
+    const checkWin = (index, activePlayerMarker) => {
+        return winningConditions.filter(conditions => conditions.includes(index))
+        .some(condition => condition.every(position =>board.getBoard()[position].getValue() == activePlayerMarker))
+    };
+
+    const getWinningConditions = () => winningConditions; // temporary
+
+    return {playRound, getActivePlayer, setBoardSize, getWinningConditions};
 }
