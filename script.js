@@ -80,9 +80,9 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
     let board = createGameBoard();
     
     const setBoardSize = (size) => {
-        // board = createGameBoard(size)
-        // winningConditions = createWinningConditions(size);
-        // renderNewRound();   
+        board = createGameBoard(size)
+        winningConditions = createWinningConditions(size);
+        renderNewRound();   
     };
 
     const players = [
@@ -105,7 +105,6 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
 
     function playRound(index) {
         if(board.placeToken(index , activePlayer.marker)) {
-            // console.log(`placing player's mark on slot ${index}`);
             if (checkWin(index, activePlayer.marker)) {
                 console.log(`%c${activePlayer.name} wins`, "color: green; font-size: 1.3rem");
                 board.renderBoard();
@@ -128,43 +127,31 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
 
     // This will create a winningConditions array 
     // Need to improve this function
-    // for now I will opt to create an array myself to check the game
-    // const createWinningConditions = (size = 3) => {
-    //     let array = [];
-    //       for (let j = 0; j < size; j++) { 
-    //           array.push([]);
-    //           for (let k = 0; k < size; k++) {
-    //               array[j].push(j * size + k);
-    //             }
-    //         }
-    //         for (let l = 0; l < size; l++) { 
-    //           array.push([]);
-    //         for (let m = 0; m < size; m++) {
-    //           array[l + size].push(m * size + l);
-    //         }
-    //       }
-    //       for (let n = 0; n < 2; n++) { 
-    //           array.push([]);
-    //           for (let o = 0; o < size; o++) {
-    //             n == 0 ? array[n + size * 2].push(o * (size + 1)) : array[n + size * 2].push((size - 1) + o * (size - 1));
-    //           }
-    //       }
+    const createWinningConditions = (size = 3) => {
+        let array = [];
+          for (let j = 0; j < size; j++) { 
+              array.push([]);
+              for (let k = 0; k < size; k++) {
+                  array[j].push(j * size + k);
+                }
+            }
+            for (let l = 0; l < size; l++) { 
+              array.push([]);
+            for (let m = 0; m < size; m++) {
+              array[l + size].push(m * size + l);
+            }
+          }
+          for (let n = 0; n < 2; n++) { 
+              array.push([]);
+              for (let o = 0; o < size; o++) {
+                n == 0 ? array[n + size * 2].push(o * (size + 1)) : array[n + size * 2].push((size - 1) + o * (size - 1));
+              }
+          }
           
-    //       return array;
-    //     };
-        
-    let winningConditions = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6],
-    ];
+          return array;
+        };
     
-    // let winningConditions = createWinningConditions();    
+    let winningConditions = createWinningConditions();    
     
     
     const checkWin = (index, activePlayerMarker) => {
