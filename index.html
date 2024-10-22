@@ -3,13 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
     <title>Tic Tac Toe | The Odin Project</title>
 </head>
 <body>
     <h1>TIC TAC TOE</h1>
-    <h3>The Game is still under development</h3>
-    <p>Open Console to play the game</p>
-    <p>The UI will be developed later</p>
+    <div id="setupPage" class="page active">
+        <form id="setupForm">
+            <fieldset>
+                <label>
+                    <span class="label">Player 1 Name</span>
+                    <input type="text" name="" id="inputPlayer1" class="player-name" placeholder="Player One">
+                </label>
+                <label>
+                    <span class="label">Player 2 Name</span>
+                    <input type="text" name="" id="inputPlayer1" class="player-name" placeholder="Player Two">
+                </label>
+            </fieldset>
+                <label>
+                    <span class="label">Select Board Size</span>
+                    <select name="" id="boardSize">
+                        <option value="3">3 x 3</option>
+                        <option value="4">4 x 4</option>
+                        <option value="5">5 x 5</option>
+                    </select>
+                </label>
+            <button class="submit-button">Start Game</button>
+        </form>
+    </div>
+    <div id="game-page" class="page">
+        <div id="gameBoard" class="board"></div>
+        <div class="stats">
+            <div class="turn-wrapper">
+            </div>
+            <div class="player-stats-group">
+                <div class="player-stats">
+                    <h2 class="player-name" id="player1Name">Player 1</h2>
+                    <div class="player-wins" id="player1Wins">0</div>
+                </div>
+                <div class="draws-wrapper">
+                    <h2>Draws</h2>
+                    <div class="draws" id="draws">0</div>
+                </div>
+                <div class="player-stats">
+                    <h2 class="player-name" id="player2Name">Player 2</h2>
+                    <div class="player-wins" id="player2Wins">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
     <script src="script.js" defer></script>
 </body>
 </html>

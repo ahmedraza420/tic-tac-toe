@@ -67,17 +67,14 @@ function Unit() {
     return {addToken, getValue};
 }
 
-function gameController(playerOneName = "Player One", playerOneMark = "X", playerTwoName = "Player Two", playerTwoMark = "O") {
-    if (playerOneMark == playerTwoMark) {
-        console.log("Both Players can't have the same Mark");
-        return;
-    }
+function gameController(playerOneName = "Player One", playerTwoName = "Player Two") {
     if (playerOneName == playerTwoName) {
         playerOneName += " 1";
         playerTwoName += " 2";
     }
 
     let board = createGameBoard();
+    let matches = 0;
     
     const setBoardSize = (size) => {
         board = createGameBoard(size)
@@ -86,11 +83,19 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
     };
 
     const players = [
-        {name : playerOneName, marker : playerOneMark, wins : 0}, 
-        {name : playerTwoName, marker : playerTwoMark, wins : 0}
+        {name : playerOneName, marker : "X", wins : 0}, 
+        {name : playerTwoName, marker : "O", wins : 0}
     ];
     
     let activePlayer = players[0];
+  
+    const startingTurn =  () => {
+        if (matches % 2 !== 0 || matches == 1) activePlafyer = players[1] 
+        else activePlayer = players[0];
+        console.log(activePlayer.marker + " " + matches);
+    };  
+    
+    startingTurn();
     
     const switchTurn = () => activePlayer = activePlayer == players[0] ? players[1] : players[0];
      
@@ -108,7 +113,7 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
             if (checkWin(index, activePlayer.marker)) {
                 console.log(`%c${activePlayer.name} wins`, "color: green; font-size: 1.3rem");
                 board.renderBoard();
-                console.log(getWins());
+                console.log(getWins()); // not working properly
                 gameOver();
             }
             else {
@@ -162,10 +167,12 @@ function gameController(playerOneName = "Player One", playerOneMark = "X", playe
 
     const gameOver = () => {
         board.resetBoard();
+        matches++;
         round = 0;
         getActivePlayer().wins++;
         getWins();
         console.log("%cNew Game", "font-size: 1.2rem; color: blue;");
+        startingTurn();
         renderNewRound();
     };
 
