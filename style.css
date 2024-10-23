@@ -14,6 +14,7 @@
     /* --shadow-secondary: rgb(21 245 186 / 0.5); */
     --shadow-player-1: rgb(88 0 255 / 0.2);
     --shadow-player-2: rgb(255 198 0 / 0.2);
+    --board-width: 30rem;
 }
 
 body {
@@ -158,7 +159,7 @@ option {
 
 .board {
     /* border: 1px solid var(--c-secondary); */
-    height: 30rem;
+    width: var(--board-width);
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
