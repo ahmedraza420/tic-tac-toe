@@ -1,4 +1,4 @@
-const game = gameController();
+// const game = gameController();
 
 function createGameBoard(size = 3) {
     const board = [];
@@ -29,11 +29,11 @@ function createGameBoard(size = 3) {
         
         if (!errorMessage) {
             board[index].addToken(playerToken);
-            return true;
+            return index;
         }
         else {
             console.log(errorMessage);
-            return false;
+            return;
         }
     };
 
@@ -52,9 +52,7 @@ function createGameBoard(size = 3) {
         board.forEach(unit => unit.addToken(undefined));
     };
 
-    const getTotalSize = () => size * size;
-
-    return {getBoard, placeToken, renderBoard, getTotalSize, resetBoard};
+    return {getBoard, placeToken, renderBoard, resetBoard};
 }
 
 function Unit() {
@@ -67,69 +65,46 @@ function Unit() {
     return {addToken, getValue};
 }
 
-function gameController(playerOneName = "Player One", playerTwoName = "Player Two") {
+function gameController(playerOneName, playerTwoName, boardSize) {
+    if (playerOneName == "" ) playerOneName = "Player One"; // but this needs to validate blank spaces
+    if (playerTwoName == "" ) playerTwoName = "Player Two";
     if (playerOneName == playerTwoName) {
-        playerOneName += " 1";
-        playerTwoName += " 2";
+        playerOneName += "(1)";
+        playerTwoName += "(2)";
     }
-
-    let board = createGameBoard();
-    let matches = 0;
     
-    const setBoardSize = (size) => {
-        board = createGameBoard(size)
-        winningConditions = createWinningConditions(size);
-        renderNewRound();   
-    };
-
     const players = [
         {name : playerOneName, marker : "X", wins : 0}, 
         {name : playerTwoName, marker : "O", wins : 0}
     ];
+
+    let matches = 0, round = 0;
     
-    let activePlayer = players[0];
-  
-    const startingTurn =  () => {
-        if (matches % 2 !== 0 || matches == 1) activePlafyer = players[1] 
+    const board = createGameBoard(boardSize);
+
+    let activePlayer;
+
+    let setStartingTurn = () => {
+        if (matches % 2 !== 0 || matches == 1) activePlayer = players[1] 
         else activePlayer = players[0];
-        console.log(activePlayer.marker + " " + matches);
-    };  
+        // console.log(activePlayer.marker + " " + matches);
+    }
+
+    setStartingTurn();
     
-    startingTurn();
-    
+    // const startingTurn =  () => {
+    //     if (matches % 2 !== 0 || matches == 1) activePlayer = players[1] 
+    //     else activePlayer = players[0];
+    //     console.log(activePlayer.marker + " " + matches);
+    // };  
+
     const switchTurn = () => activePlayer = activePlayer == players[0] ? players[1] : players[0];
      
     const getActivePlayer = () => activePlayer;
 
-    const renderNewRound = () => {
-        board.renderBoard();
-        console.log(`It's ${activePlayer.name}'s turn. [${activePlayer.marker}]`)
-    };
-    
-    let round = 0;
+    const getActivePlayerIndex = () => players.indexOf(activePlayer);
 
-    function playRound(index) {
-        if(board.placeToken(index , activePlayer.marker)) {
-            if (checkWin(index, activePlayer.marker)) {
-                console.log(`%c${activePlayer.name} wins`, "color: green; font-size: 1.3rem");
-                board.renderBoard();
-                console.log(getWins()); // not working properly
-                gameOver();
-            }
-            else {
-                switchTurn();
-                renderNewRound();   
-                if (isDraw()) {
-                    console.log(getWins());
-                    gameOver();
-                };
-            }
-        }
-    }
-
-    renderNewRound();
-
-    const createWinningConditions = (size = 3) => {
+    const winningConditions = (function(size) {
         let array = [];
         for (let i = 0; i < size; i++) {
             let row = [], col = [];
@@ -141,25 +116,49 @@ function gameController(playerOneName = "Player One", playerTwoName = "Player Tw
         }
         
         let diagonal1 = [], diagonal2 = [];
-          for (let i = 0; i < size; i++) {
-             diagonal1.push(i * (size + 1));
-             diagonal2.push((i + 1) * (size - 1))
-          }
-          array.push(diagonal1, diagonal2);
-          return array;
-        };
+        for (let i = 0; i < size; i++) {
+            diagonal1.push(i * (size + 1));
+            diagonal2.push((i + 1) * (size - 1))
+        }
+        array.push(diagonal1, diagonal2);
+        return array;
+    })(boardSize);
+
+    const getWins = () => {
+        return players.map(player => player.wins);
+    }
+
+    const getBoard = () => board.getBoard();
     
-    let winningConditions = createWinningConditions();    
-    
-    
-    const checkWin = (index, activePlayerMarker) => {
-        return winningConditions.filter(conditions => conditions.includes(index))
-        .some(condition => condition.every(position =>board.getBoard()[position].getValue() == activePlayerMarker))
-    };
+    function playRound(index) {
+        const placedToken = board.placeToken(index , activePlayer.marker);
+        if(!isNaN(placedToken)) {
+            if (checkWin(index, activePlayer.marker)) {
+                console.log(`%c${activePlayer.name} wins`, "color: green; font-size: 1.3rem");
+                // board.renderBoard();
+                console.log(getWins()); // not working properly
+                gameOver();
+            }
+            else {
+                // board.renderBoard();
+                if (isDraw()) {
+                    console.log(getWins());
+                    gameOver();
+                };
+                switchTurn();
+            }
+            return placedToken;
+        }
+        return;
+    }
+
+    const checkWin = (index, activePlayerMarker) => winningConditions.filter(conditions => conditions.includes(index))
+        .find(condition => condition
+            .every(position =>board.getBoard()[position].getValue() == activePlayerMarker));
     
     const isDraw = () => {
         round++;
-        if (round == board.getTotalSize()) {
+        if (round == board.getBoard().length) {
             console.log("%cIt's a draw", "color: brown; font-size: 1.2rem");
             gameOver();
         }
@@ -172,13 +171,95 @@ function gameController(playerOneName = "Player One", playerTwoName = "Player Tw
         getActivePlayer().wins++;
         getWins();
         console.log("%cNew Game", "font-size: 1.2rem; color: blue;");
-        startingTurn();
-        renderNewRound();
+        setStartingTurn();
     };
 
-    const getWins = () => {
-        return players.map(player => player.wins);
-    }
+    //
 
-    return {playRound, getActivePlayer, setBoardSize, getWins};
+    // 
+
+
+    // Deleted: renderNewRound(), 
+
+    return {playRound, getActivePlayer, getActivePlayerIndex, getWins, getBoard};
 }
+
+function displayController () {
+    const setupPage = document.querySelector('#setupPage');
+    const gamePage = document.querySelector('#gamePage');
+    const setupForm = document.querySelector('#setupForm');
+    const formSubmitBtn = document.querySelector('#formSubmitBtn');
+    const player1Name = document.querySelector ('#inputPlayer1');
+    const player2Name = document.querySelector ('#inputPlayer2');
+    const boardSizeInput = document.querySelector('#boardSize');
+    const gameBoard = document.querySelector('#gameBoard');
+    
+    const player1Icon = `<svg class="icon-player-1 player-marker" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed"><path d="M480-392 300-212q-18 18-44 18t-44-18q-18-18-18-44t18-44l180-180-180-180q-18-18-18-44t18-44q18-18 44-18t44 18l180 180 180-180q18-18 44-18t44 18q18 18 18 44t-18 44L568-480l180 180q18 18 18 44t-18 44q-18 18-44 18t-44-18L480-392Z"/></svg>`;
+    const player2Icon = `<svg class="icon-player-2 player-marker" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed"><path d="M480-480Zm.06 314Q350-166 258-257.94t-92-222Q166-610 257.94-702t222-92Q610-794 702-702.06t92 222Q794-350 702.06-258t-222 92Zm-.07-126Q558-292 613-346.99q55-54.98 55-133Q668-558 613.01-613q-54.98-55-133-55Q402-668 347-613.01q-55 54.98-55 133Q292-402 346.99-347q54.98 55 133 55Z"/></svg>`;
+
+    const init =  () => {
+        gamePage.classList.remove('active');
+        setupPage.classList.add('active');
+    };
+
+    const showGamePage = () => {
+        setupPage.classList.remove('active');
+        gamePage.classList.add('active');
+    };
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    formSubmitBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        showGamePage();
+
+        const boardSize = boardSizeInput.value;
+
+        const game = gameController(player1Name.value.trim(), player2Name.value.trim(), Number(boardSize));
+
+        const generateBoard = (function() {
+            const unitEventHandler = (event) => {
+                const activePlayerIndex = game.getActivePlayerIndex()
+                const unit = event.target.closest('.unit');
+                game.playRound(Number(unit.dataset.index));
+                updateBoard();
+            };
+
+            function updateBoard() {
+                game.getBoard().forEach((unit, index) => {
+                    const gameBoardItem = document.querySelector(`.unit[data-index="${index}"]`);
+                    if (unit.getValue() == 'X') {
+                        gameBoardItem.classList.add('active-player-1');
+                        gameBoardItem.innerHTML = player1Icon;
+                    }
+                    else if (unit.getValue() == 'O') {
+                        gameBoardItem.classList.add('active-player-2');
+                        gameBoardItem.innerHTML = player2Icon;
+                    }
+                    else {
+                        gameBoardItem.innerHTML = "";
+                        gameBoardItem.classList.remove('active-player-1', 'active-player-2');
+                    }
+                });
+            }
+
+            gameBoard.innerHTML = "";
+            game.getBoard().forEach((boardUnit, index) => {
+                const unit = document.createElement('button');
+                unit.classList.add('unit');
+                unit.dataset.index = index;
+                // unit.innerHTML = player1Icon; // temporary
+                gameBoard.appendChild(unit);
+            
+                unit.addEventListener('click', unitEventHandler);
+            });
+
+            gameBoard.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
+            gameBoard.style.gridTemplateRows = `repeat(${boardSize}, 1fr)`;
+
+
+        })();
+    });
+}
+
+displayController();
