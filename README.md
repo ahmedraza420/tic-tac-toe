@@ -9,6 +9,7 @@ You can play the Live version [Tic Tac Toe](https://ahmedraza420.github.io/tic-t
 - Dynamic winning conditions based on the selected board size.
 - Central GameApp module to facilitate secure communication between gameController and displayController.
 - Player vs. Player gameplay.
+- Responsive design for smaller screens
 
 # What I Learned
 - Module pattern creates a maintainable and secure codebase.
