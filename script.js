@@ -1,15 +1,10 @@
-// const game = gameController();
 
 function createGameBoard(size = 3) {
-    const board = [];
-
-    for (let i = 0; i < size * size; i++) {
-        board.push(Unit());
-    }
+    let board = new Array(size * size).fill(null);
     
     const getBoard = () => board;
 
-    const placeToken = (index, playerToken) => {
+    const placeMarker = (index, playerToken) => {
         const checkValidity = (index) => {
             if (index >= size * size || index < 0){
                 return `Position with index ${index} doesn't exist in the game!. It should be between 0 and ${(size * size) - 1}`;
@@ -17,18 +12,18 @@ function createGameBoard(size = 3) {
             else if (isNaN(index)) {
                 return `The position should be a number between 0 and ${(size * size) -1 }!`;
             }
-            else if (board[index].getValue()) {
+            else if (board[index]) {
                 return `This place has already been occupied!`;
             } 
             else {
-                return;
+                return false;
             }
         };
 
         const errorMessage = checkValidity(index);
         
         if (!errorMessage) {
-            board[index].addToken(playerToken);
+            board[index] = playerToken;
             return index;
         }
         else {
@@ -37,75 +32,91 @@ function createGameBoard(size = 3) {
         }
     };
 
-    function renderBoard() { // just for console
-        console.log(board.reduce((accum, current, index) => {
-            const value = board[index].getValue() ? board[index].getValue() : " ";
-            if ((index + 1) % size === 0 && index !== 0) {
-                return accum += `${value}\n`;
-            }
-            else {
-                return accum += `${value}|`
-            }}, ""));
-    }
+    const resetBoard = () => board.fill(null);
 
-    const resetBoard = () => {
-        board.forEach(unit => unit.addToken(undefined));
+    return {getBoard, placeMarker, resetBoard};
+}
+
+function createGameController() {
+    // players[]
+    let players = [];
+    let drawCount = 0;
+    let board, winningConditions, matches;
+    
+    // createBoard 
+    const initGame = (nameOne, nameTwo, boardSize) => {
+        if (nameOne == "" ) nameOne = "Player 1"; // but this needs to validate blank spaces
+        if (nameTwo == "" ) nameTwo = "Player 2";
+        if (nameOne == nameTwo) {
+            nameOne += " (1)";
+            nameTwo += " (2)";
+        }
+        players = [
+            {name: nameOne, marker: '0', wins: 0},
+            {name: nameTwo, marker: '1', wins: 0}
+        ]
+        board = createGameBoard(boardSize);
+        matches = 0;
+        drawCount = 0;
+        setStartingTurn();
+        currentPlayer = players[0];
+        GameApp.display.displayTurn(players.indexOf(currentPlayer));
+        winningConditions = createWinningConditions(boardSize);
+    } 
+
+    // set current turn
+    let currentPlayer;
+
+    const setStartingTurn = () => currentPlayer = (matches % 2 === 0 && matches !== 1) ? players[0] : players[1];
+
+        // display current turn
+    const switchTurn = () => {
+        currentPlayer = currentPlayer === players[0] ? players[1] : players[0]
+        GameApp.display.displayTurn(players.indexOf(currentPlayer));
     };
 
-    return {getBoard, placeToken, renderBoard, resetBoard};
-}
+    // makeMove for each player
+    const makeMove = (index) => {
+        // try to put the current player's marker on the board.
+        if (!isNaN(board.placeMarker(index, currentPlayer.marker))) {
+            GameApp.display.updateBoardDisplay(index, currentPlayer.marker);
 
-function Unit() {
-    let value;
-
-    const addToken = (playerToken) => {value = playerToken}; 
-
-    const getValue = () => value;
-    
-    return {addToken, getValue};
-}
-
-function gameController(playerOneName, playerTwoName, boardSize) {
-    if (playerOneName == "" ) playerOneName = "Player One"; // but this needs to validate blank spaces
-    if (playerTwoName == "" ) playerTwoName = "Player Two";
-    if (playerOneName == playerTwoName) {
-        playerOneName += "(1)";
-        playerTwoName += "(2)";
-    }
-    
-    const players = [
-        {name : playerOneName, marker : "X", wins : 0}, 
-        {name : playerTwoName, marker : "O", wins : 0}
-    ];
-
-    let matches = 0, round = 0;
-    
-    const board = createGameBoard(boardSize);
-
-    let activePlayer;
-
-    let setStartingTurn = () => {
-        if (matches % 2 !== 0 || matches == 1) activePlayer = players[1] 
-        else activePlayer = players[0];
-        // console.log(activePlayer.marker + " " + matches);
+            // check if player won the game
+            if (checkWin(index)) {
+                // display modal
+                // GameApp.display.showModal();
+                console.log(`${currentPlayer.name} has won the game`);    
+                currentPlayer.wins++;
+                GameApp.display.displayGameOver(true, currentPlayer);
+            }
+            // check if the game is draw
+            else if (checkDraw()) {
+                // display modal
+                // GameApp.display.showModal();
+                console.log("Game Draw");
+                drawCount++;
+                GameApp.display.displayGameOver(false);
+            }
+            else {
+                switchTurn();
+                // change scores
+                // reset board
+                // set turn to the second player
+            }
+            
+            // change turn    
+            // display current turn
+        }        
     }
 
-    setStartingTurn();
-    
-    // const startingTurn =  () => {
-    //     if (matches % 2 !== 0 || matches == 1) activePlayer = players[1] 
-    //     else activePlayer = players[0];
-    //     console.log(activePlayer.marker + " " + matches);
-    // };  
+    const checkWin = (index) => winningConditions
+        .filter(conditions => conditions.includes(index))
+        .find(condition => condition
+            .every(position => board.getBoard()[position] === currentPlayer.marker)
+        );
 
-    const switchTurn = () => activePlayer = activePlayer == players[0] ? players[1] : players[0];
-     
-    const getActivePlayer = () => activePlayer;
-
-    const getActivePlayerIndex = () => players.indexOf(activePlayer);
-
-    const winningConditions = (function(size) {
-        let array = [];
+    const createWinningConditions = (size) => {
+        let array = [], diagonal1 = [], diagonal2 = [];
         for (let i = 0; i < size; i++) {
             let row = [], col = [];
             for (let j = 0; j < size; j++) {
@@ -114,152 +125,203 @@ function gameController(playerOneName, playerTwoName, boardSize) {
             }
             array.push(row, col);
         }
-        
-        let diagonal1 = [], diagonal2 = [];
         for (let i = 0; i < size; i++) {
             diagonal1.push(i * (size + 1));
             diagonal2.push((i + 1) * (size - 1))
         }
         array.push(diagonal1, diagonal2);
         return array;
-    })(boardSize);
-
-    const getWins = () => {
-        return players.map(player => player.wins);
     }
+
+    const checkDraw = () => {
+        if (board.getBoard().some(item => item == null)) return false;
+        return true;
+    }
+
+    const resetBoard = () => {
+        board.resetBoard();
+        GameApp.display.resetBoardDisplay();
+    }
+
+    const gameOver = () => {   
+        matches++;
+        resetBoard();
+        GameApp.display.updateStats(...players.map(player => player.wins), drawCount);
+
+    };
 
     const getBoard = () => board.getBoard();
-    
-    function playRound(index) {
-        const placedToken = board.placeToken(index , activePlayer.marker);
-        if(!isNaN(placedToken)) {
-            if (checkWin(index, activePlayer.marker)) {
-                console.log(`%c${activePlayer.name} wins`, "color: green; font-size: 1.3rem");
-                // board.renderBoard();
-                console.log(getWins()); // not working properly
-                gameOver();
-            }
-            else {
-                // board.renderBoard();
-                if (isDraw()) {
-                    console.log(getWins());
-                    gameOver();
-                };
-                switchTurn();
-            }
-            return placedToken;
-        }
-        return;
-    }
 
-    const checkWin = (index, activePlayerMarker) => winningConditions.filter(conditions => conditions.includes(index))
-        .find(condition => condition
-            .every(position =>board.getBoard()[position].getValue() == activePlayerMarker));
-    
-    const isDraw = () => {
-        round++;
-        if (round == board.getBoard().length) {
-            console.log("%cIt's a draw", "color: brown; font-size: 1.2rem");
-            gameOver();
-        }
-    }
+    // const getMarkers = () => players.map(player => player.marker);
 
-    const gameOver = () => {
-        board.resetBoard();
-        matches++;
-        round = 0;
-        getActivePlayer().wins++;
-        getWins();
-        console.log("%cNew Game", "font-size: 1.2rem; color: blue;");
+    const matchRestart = () => {
+        resetBoard();
+        // board.resetBoard()
+        // GameApp.display.resetBoardDisplay();
         setStartingTurn();
     };
 
-    //
+    // const resetGame = () => {
 
-    // 
+    // }
 
+    const getPlayers = () => players;
 
-    // Deleted: renderNewRound(), 
-
-    return {playRound, getActivePlayer, getActivePlayerIndex, getWins, getBoard};
+    return {initGame, makeMove, resetBoard, getBoard, matchRestart, getPlayers, gameOver};
 }
 
-function displayController () {
+function createDisplayController () {
+    // Chaching DOM Elements
     const setupPage = document.querySelector('#setupPage');
-    const gamePage = document.querySelector('#gamePage');
-    const setupForm = document.querySelector('#setupForm');
-    const formSubmitBtn = document.querySelector('#formSubmitBtn');
-    const player1Name = document.querySelector ('#inputPlayer1');
-    const player2Name = document.querySelector ('#inputPlayer2');
-    const boardSizeInput = document.querySelector('#boardSize');
-    const gameBoard = document.querySelector('#gameBoard');
+    const formSubmitBtn = setupPage.querySelector('#formSubmitBtn');
+    const player1Input = setupPage.querySelector ('#inputPlayer1');
+    const player2Input = setupPage.querySelector ('#inputPlayer2');
+    const boardSizeInput = setupPage.querySelector('#boardSize');
     
-    const player1Icon = `<svg class="icon-player-1 player-marker" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed"><path d="M480-392 300-212q-18 18-44 18t-44-18q-18-18-18-44t18-44l180-180-180-180q-18-18-18-44t18-44q18-18 44-18t44 18l180 180 180-180q18-18 44-18t44 18q18 18 18 44t-18 44L568-480l180 180q18 18 18 44t-18 44q-18 18-44 18t-44-18L480-392Z"/></svg>`;
-    const player2Icon = `<svg class="icon-player-2 player-marker" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed"><path d="M480-480Zm.06 314Q350-166 258-257.94t-92-222Q166-610 257.94-702t222-92Q610-794 702-702.06t92 222Q794-350 702.06-258t-222 92Zm-.07-126Q558-292 613-346.99q55-54.98 55-133Q668-558 613.01-613q-54.98-55-133-55Q402-668 347-613.01q-55 54.98-55 133Q292-402 346.99-347q54.98 55 133 55Z"/></svg>`;
+    const gamePage = document.querySelector('#gamePage');
+    const gameBoard = gamePage.querySelector('#gameBoard');
+    const player1Name = document.querySelector('#player1Name');
+    const player2Name = document.querySelector('#player2Name');
+    const player1Wins = document.querySelector('#player1Wins');
+    const player2Wins = document.querySelector('#player2Wins');
+    const drawDisplay = gamePage.querySelector('#drawsCount')
+    const turnDisplays = gamePage.querySelectorAll('.turn');
+    const restartBtn = gamePage.querySelector('#restartBtn');
+    const resetBtn = gamePage.querySelector('#resetBtn');
 
-    const init =  () => {
+    const gameOverModal = document.querySelector('#gameOverModal');
+    const winnerIcon = gameOverModal.querySelector('#winnerIcon');
+    const gameOverMessage = gameOverModal.querySelector('#gameOverMessage');
+    const closeModalBtn = gameOverModal.querySelector('#closeModal');
+    const playerIcons = [
+        `<svg class="icon-player-1 player-marker" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed"><path d="M480-392 300-212q-18 18-44 18t-44-18q-18-18-18-44t18-44l180-180-180-180q-18-18-18-44t18-44q18-18 44-18t44 18l180 180 180-180q18-18 44-18t44 18q18 18 18 44t-18 44L568-480l180 180q18 18 18 44t-18 44q-18 18-44 18t-44-18L480-392Z"/></svg>`
+        ,`<svg class="icon-player-2 player-marker" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed"><path d="M480-480Zm.06 314Q350-166 258-257.94t-92-222Q166-610 257.94-702t222-92Q610-794 702-702.06t92 222Q794-350 702.06-258t-222 92Zm-.07-126Q558-292 613-346.99q55-54.98 55-133Q668-558 613.01-613q-54.98-55-133-55Q402-668 347-613.01q-55 54.98-55 133Q292-402 346.99-347q54.98 55 133 55Z"/></svg>`
+    ];
+
+    let players;
+    
+    
+    // init
+    const init = () => {
         gamePage.classList.remove('active');
         setupPage.classList.add('active');
+        formSubmitBtn.addEventListener('click', handleFormSubmit);
     };
 
-    const showGamePage = () => {
+    const handleFormSubmit = (e) => {
+        e.preventDefault();
+        GameApp.game.initGame(player1Input.value.trim(), player2Input.value.trim(), Number(boardSizeInput.value));
+        players = GameApp.game.getPlayers();
+        showGamePage(Number(boardSizeInput.value));
+    } 
+
+    const setStats = (players) => {
+        player1Name.innerText = players[0].name;
+        player2Name.innerText = players[1].name;
+        player1Wins.innerText = 0;
+        player2Wins.innerText = 0;
+        drawDisplay.innerText = 0;
+    }
+
+    const updateStats = (p1Wins = 0, p2Wins = 0, drawCount = 0) => {
+        player1Wins.innerText = players[0].wins;
+        player2Wins.innerText = players[1].wins;
+        drawDisplay.innerText = drawCount;
+    }
+
+    // showGamePage
+    const showGamePage = (boardSize) => {
         setupPage.classList.remove('active');
         gamePage.classList.add('active');
-    };
+        formSubmitBtn.removeEventListener('click', handleFormSubmit);
+        generateBoard(boardSize);
+        setStats(players);
+        restartBtn.addEventListener('click', GameApp.game.matchRestart);
+        resetBtn.addEventListener('click', handleGameReset);
+    }   
 
-    document.addEventListener('DOMContentLoaded', init);
-
-    formSubmitBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        showGamePage();
-
-        const boardSize = boardSizeInput.value;
-
-        const game = gameController(player1Name.value.trim(), player2Name.value.trim(), Number(boardSize));
-
-        const generateBoard = (function() {
-            const unitEventHandler = (event) => {
-                const activePlayerIndex = game.getActivePlayerIndex()
-                const unit = event.target.closest('.unit');
-                game.playRound(Number(unit.dataset.index));
-                updateBoard();
-            };
-
-            function updateBoard() {
-                game.getBoard().forEach((unit, index) => {
-                    const gameBoardItem = document.querySelector(`.unit[data-index="${index}"]`);
-                    if (unit.getValue() == 'X') {
-                        gameBoardItem.classList.add('active-player-1');
-                        gameBoardItem.innerHTML = player1Icon;
-                    }
-                    else if (unit.getValue() == 'O') {
-                        gameBoardItem.classList.add('active-player-2');
-                        gameBoardItem.innerHTML = player2Icon;
-                    }
-                    else {
-                        gameBoardItem.innerHTML = "";
-                        gameBoardItem.classList.remove('active-player-1', 'active-player-2');
-                    }
-                });
-            }
-
-            gameBoard.innerHTML = "";
-            game.getBoard().forEach((boardUnit, index) => {
-                const unit = document.createElement('button');
-                unit.classList.add('unit');
-                unit.dataset.index = index;
-                // unit.innerHTML = player1Icon; // temporary
-                gameBoard.appendChild(unit);
-            
-                unit.addEventListener('click', unitEventHandler);
-            });
-
-            gameBoard.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
-            gameBoard.style.gridTemplateRows = `repeat(${boardSize}, 1fr)`;
+    const generateBoard = (size) => { // display the board
+        gameBoard.innerHTML = "";
+        GameApp.game.getBoard().forEach((cell, index) => {
+            const unit = document.createElement('button');
+            unit.classList.add('unit');
+            unit.dataset.index = index;
+            gameBoard.appendChild(unit);
+        
+            unit.addEventListener('click', handleUnitClick);
+        });
+        gameBoard.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+        gameBoard.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+    }
 
 
-        })();
-    });
+    const handleUnitClick = (e) => {
+        const unit = e.target.closest('.unit');
+        // console.log(unit.dataset.index);
+        GameApp.game.makeMove(Number(unit.dataset.index));    // may need to call updateDisplay if not called in makeMove() itself
+    }
+
+
+    // updateBoardDisplay() /// could have index, marker to change only a single div at a time.
+    const updateBoardDisplay = (index, marker) => {
+        gameBoard.children[index].innerHTML = playerIcons[players.indexOf(players.find(player => player.marker === marker))]
+    } 
+
+    const resetBoardDisplay = () => {
+        Array.from(gameBoard.children).forEach(unit => unit.innerHTML = "");
+    }
+
+
+    // displayTurn
+    const displayTurn = (index) => {
+        turnDisplays.forEach(turnDisplay => turnDisplay.classList.remove('active'));
+        Array.from(turnDisplays).find(turnDisplay => turnDisplay.dataset.turnIndex == index).classList.add('active');
+    }
+
+    // displayWinner
+
+    //displayDraw
+
+    // handleGameReset
+    const handleGameReset = () => {
+        init();
+    }
+    
+
+    // showModal
+    const displayGameOver = (win = false, winner = null) => {
+        if (win) {
+            winnerIcon.innerHTML = playerIcons[winner.marker];
+            gameOverMessage.innerText = `${winner.name.toUpperCase()} WINS THE GAME`;
+            winnerIcon.style.display = 'block';
+        }
+        else {
+            winnerIcon.style.display = 'none';
+            gameOverMessage.innerText = `THE GAME IS DRAW`;
+        }
+        gameOverModal.showModal();
+        closeModalBtn.addEventListener('click', closeModal, {once: true});
+    }
+
+    const closeModal = () => {
+        gameOverModal.close();
+        GameApp.game.gameOver();
+    }
+
+    return {init, displayGameOver, updateBoardDisplay, resetBoardDisplay, displayTurn, updateStats};
 }
 
-displayController();
+const GameApp = (() => {
+    const game = createGameController();
+    const display = createDisplayController();
+
+    const init = () => {
+        display.init();
+    }
+
+    return {init, game, display};
+})();
+
+
+
+document.addEventListener('DOMContentLoaded', GameApp.init);
