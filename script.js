@@ -154,8 +154,8 @@ function createDisplayController () {
     const winnerIcon = gameOverModal.querySelector('#winnerIcon');
     const gameOverMessage = gameOverModal.querySelector('#gameOverMessage');
     const playerIcons = [
-        `<svg class="icon-player-1 player-marker" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed"><path d="M480-392 300-212q-18 18-44 18t-44-18q-18-18-18-44t18-44l180-180-180-180q-18-18-18-44t18-44q18-18 44-18t44 18l180 180 180-180q18-18 44-18t44 18q18 18 18 44t-18 44L568-480l180 180q18 18 18 44t-18 44q-18 18-44 18t-44-18L480-392Z"/></svg>`
-        ,`<svg class="icon-player-2 player-marker" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed"><path d="M480-480Zm.06 314Q350-166 258-257.94t-92-222Q166-610 257.94-702t222-92Q610-794 702-702.06t92 222Q794-350 702.06-258t-222 92Zm-.07-126Q558-292 613-346.99q55-54.98 55-133Q668-558 613.01-613q-54.98-55-133-55Q402-668 347-613.01q-55 54.98-55 133Q292-402 346.99-347q54.98 55 133 55Z"/></svg>`
+        `<svg class="icon-player-1 player-marker" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="#e8eaed"><path d="M480-392 300-212q-18 18-44 18t-44-18q-18-18-18-44t18-44l180-180-180-180q-18-18-18-44t18-44q18-18 44-18t44 18l180 180 180-180q18-18 44-18t44 18q18 18 18 44t-18 44L568-480l180 180q18 18 18 44t-18 44q-18 18-44 18t-44-18L480-392Z"/></svg>`
+        ,`<svg class="icon-player-2 player-marker" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="#e8eaed"><path d="M480-480Zm.06 314Q350-166 258-257.94t-92-222Q166-610 257.94-702t222-92Q610-794 702-702.06t92 222Q794-350 702.06-258t-222 92Zm-.07-126Q558-292 613-346.99q55-54.98 55-133Q668-558 613.01-613q-54.98-55-133-55Q402-668 347-613.01q-55 54.98-55 133Q292-402 346.99-347q54.98 55 133 55Z"/></svg>`
     ];
 
     let players;

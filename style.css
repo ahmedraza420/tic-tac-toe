@@ -190,12 +190,16 @@ option {
     grid-row: 2;
     justify-self: center;
     aspect-ratio: 1 / 1;
+    transition: all 0.3s ease;
 }
 
 .unit {
     color: var(--c-secondary);
     border: 0.2rem solid currentColor;
     border-radius: var(--b-radius-small);
+    /* padding: 1px; */
+    padding-block: 0.0625rem;
+    padding-inline: 0.375rem;
     background: transparent;
     box-shadow: 0 0 0.75rem -0.25rem currentColor inset;
     transition: box-shadow 0.3s;
@@ -216,6 +220,7 @@ option {
 .player-marker {
     height: 100%;
     width: 100%;
+    scale: 1.2;
     filter: drop-shadow(0 0 2rem currentColor);
 }
 
@@ -295,8 +300,10 @@ option {
 }
 
 .restart-button, .reset-button { 
-    width: 8rem;
+    max-width: 8rem;
+    min-width: 90%;
     font-weight: 700;
+    justify-self: center;
 }
 
 .gameover-announce[open] {
@@ -326,4 +333,42 @@ option {
 
 .gameover-message {
     align-self: center;
+}
+
+@media only screen and (max-width: 600px) {
+    :root {
+        --board-width: 25rem;
+    }
+
+    .unit {
+        box-shadow: 0 0 0.5rem -0.15rem currentColor inset;
+    }
+
+    .turn-wrapper {
+        height: 4rem;
+        width: 8rem;
+    }
+
+    .gameover-announce[open] {
+        width: 20rem;
+        height: 12rem;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    :root {
+        font-size: 14px;
+        --board-width: 20rem;
+    }
+
+    .game-page {
+        gap: 0.25rem;
+        grid-template-rows: repeat(3, 1fr);
+        align-items: center;
+    }
+
+    .gameover-announce[open] {
+        width: 18rem;
+        height: 10rem;
+    }
 }
