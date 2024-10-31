@@ -299,7 +299,7 @@ option {
     font-weight: 700;
 }
 
-.winner-announce[open] {
+.gameover-announce[open] {
     border-radius: 2rem;
     border: 0.25rem solid var(--c-secondary);
     height: 15rem;
@@ -313,7 +313,7 @@ option {
     color: var(--c-secondary);
 }
 
-.winner-announce::backdrop {
+.gameover-announce::backdrop {
     backdrop-filter: blur(5px);
     transition: all 0.3s ease;
 }
@@ -322,4 +322,8 @@ option {
     height: 100%;
     width: auto;
     filter: drop-shadow(0 0 0.25rem currentColor);
+}
+
+.gameover-message {
+    align-self: center;
 }

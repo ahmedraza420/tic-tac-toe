@@ -6,30 +6,17 @@ function createGameBoard(size = 3) {
 
     const placeMarker = (index, playerToken) => {
         const checkValidity = (index) => {
-            if (index >= size * size || index < 0){
-                return `Position with index ${index} doesn't exist in the game!. It should be between 0 and ${(size * size) - 1}`;
-            }
-            else if (isNaN(index)) {
-                return `The position should be a number between 0 and ${(size * size) -1 }!`;
-            }
-            else if (board[index]) {
-                return `This place has already been occupied!`;
-            } 
-            else {
+            if (index >= size * size || index < 0 || isNaN(index) || board[index]) {
                 return false;
             }
+            return true;
         };
 
-        const errorMessage = checkValidity(index);
-        
-        if (!errorMessage) {
+        if (checkValidity(index)) {
             board[index] = playerToken;
             return index;
         }
-        else {
-            console.log(errorMessage);
-            return;
-        }
+        return false;
     };
 
     const resetBoard = () => board.fill(null);
@@ -38,12 +25,10 @@ function createGameBoard(size = 3) {
 }
 
 function createGameController() {
-    // players[]
     let players = [];
     let drawCount = 0;
-    let board, winningConditions, matches;
-    
-    // createBoard 
+    let board, winningConditions, matches, currentPlayer;
+
     const initGame = (nameOne, nameTwo, boardSize) => {
         if (nameOne == "" ) nameOne = "Player 1"; // but this needs to validate blank spaces
         if (nameTwo == "" ) nameTwo = "Player 2";
@@ -59,53 +44,38 @@ function createGameController() {
         matches = 0;
         drawCount = 0;
         setStartingTurn();
+
         currentPlayer = players[0];
         GameApp.display.displayTurn(players.indexOf(currentPlayer));
         winningConditions = createWinningConditions(boardSize);
     } 
 
-    // set current turn
-    let currentPlayer;
+    const setStartingTurn = () => {
+        currentPlayer = (matches % 2 === 0 && matches !== 1) ? players[0] : players[1]
+        GameApp.display.displayTurn(players.indexOf(currentPlayer));
+    };
 
-    const setStartingTurn = () => currentPlayer = (matches % 2 === 0 && matches !== 1) ? players[0] : players[1];
-
-        // display current turn
     const switchTurn = () => {
         currentPlayer = currentPlayer === players[0] ? players[1] : players[0]
         GameApp.display.displayTurn(players.indexOf(currentPlayer));
     };
 
-    // makeMove for each player
     const makeMove = (index) => {
-        // try to put the current player's marker on the board.
-        if (!isNaN(board.placeMarker(index, currentPlayer.marker))) {
+        if (typeof board.placeMarker(index, currentPlayer.marker) === 'number') {
             GameApp.display.updateBoardDisplay(index, currentPlayer.marker);
-
-            // check if player won the game
             if (checkWin(index)) {
-                // display modal
-                // GameApp.display.showModal();
                 console.log(`${currentPlayer.name} has won the game`);    
                 currentPlayer.wins++;
                 GameApp.display.displayGameOver(true, currentPlayer);
             }
-            // check if the game is draw
             else if (checkDraw()) {
-                // display modal
-                // GameApp.display.showModal();
                 console.log("Game Draw");
                 drawCount++;
                 GameApp.display.displayGameOver(false);
             }
             else {
                 switchTurn();
-                // change scores
-                // reset board
-                // set turn to the second player
             }
-            
-            // change turn    
-            // display current turn
         }        
     }
 
@@ -145,25 +115,17 @@ function createGameController() {
 
     const gameOver = () => {   
         matches++;
+        setStartingTurn();
         resetBoard();
         GameApp.display.updateStats(...players.map(player => player.wins), drawCount);
-
     };
 
     const getBoard = () => board.getBoard();
 
-    // const getMarkers = () => players.map(player => player.marker);
-
     const matchRestart = () => {
         resetBoard();
-        // board.resetBoard()
-        // GameApp.display.resetBoardDisplay();
         setStartingTurn();
     };
-
-    // const resetGame = () => {
-
-    // }
 
     const getPlayers = () => players;
 
@@ -171,7 +133,6 @@ function createGameController() {
 }
 
 function createDisplayController () {
-    // Chaching DOM Elements
     const setupPage = document.querySelector('#setupPage');
     const formSubmitBtn = setupPage.querySelector('#formSubmitBtn');
     const player1Input = setupPage.querySelector ('#inputPlayer1');
@@ -192,16 +153,13 @@ function createDisplayController () {
     const gameOverModal = document.querySelector('#gameOverModal');
     const winnerIcon = gameOverModal.querySelector('#winnerIcon');
     const gameOverMessage = gameOverModal.querySelector('#gameOverMessage');
-    const closeModalBtn = gameOverModal.querySelector('#closeModal');
     const playerIcons = [
         `<svg class="icon-player-1 player-marker" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed"><path d="M480-392 300-212q-18 18-44 18t-44-18q-18-18-18-44t18-44l180-180-180-180q-18-18-18-44t18-44q18-18 44-18t44 18l180 180 180-180q18-18 44-18t44 18q18 18 18 44t-18 44L568-480l180 180q18 18 18 44t-18 44q-18 18-44 18t-44-18L480-392Z"/></svg>`
         ,`<svg class="icon-player-2 player-marker" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed"><path d="M480-480Zm.06 314Q350-166 258-257.94t-92-222Q166-610 257.94-702t222-92Q610-794 702-702.06t92 222Q794-350 702.06-258t-222 92Zm-.07-126Q558-292 613-346.99q55-54.98 55-133Q668-558 613.01-613q-54.98-55-133-55Q402-668 347-613.01q-55 54.98-55 133Q292-402 346.99-347q54.98 55 133 55Z"/></svg>`
     ];
 
     let players;
-    
-    
-    // init
+
     const init = () => {
         gamePage.classList.remove('active');
         setupPage.classList.add('active');
@@ -229,7 +187,6 @@ function createDisplayController () {
         drawDisplay.innerText = drawCount;
     }
 
-    // showGamePage
     const showGamePage = (boardSize) => {
         setupPage.classList.remove('active');
         gamePage.classList.add('active');
@@ -240,7 +197,7 @@ function createDisplayController () {
         resetBtn.addEventListener('click', handleGameReset);
     }   
 
-    const generateBoard = (size) => { // display the board
+    const generateBoard = (size) => {
         gameBoard.innerHTML = "";
         GameApp.game.getBoard().forEach((cell, index) => {
             const unit = document.createElement('button');
@@ -257,12 +214,9 @@ function createDisplayController () {
 
     const handleUnitClick = (e) => {
         const unit = e.target.closest('.unit');
-        // console.log(unit.dataset.index);
-        GameApp.game.makeMove(Number(unit.dataset.index));    // may need to call updateDisplay if not called in makeMove() itself
+        GameApp.game.makeMove(Number(unit.dataset.index));
     }
 
-
-    // updateBoardDisplay() /// could have index, marker to change only a single div at a time.
     const updateBoardDisplay = (index, marker) => {
         gameBoard.children[index].innerHTML = playerIcons[players.indexOf(players.find(player => player.marker === marker))]
     } 
@@ -271,24 +225,15 @@ function createDisplayController () {
         Array.from(gameBoard.children).forEach(unit => unit.innerHTML = "");
     }
 
-
-    // displayTurn
     const displayTurn = (index) => {
         turnDisplays.forEach(turnDisplay => turnDisplay.classList.remove('active'));
         Array.from(turnDisplays).find(turnDisplay => turnDisplay.dataset.turnIndex == index).classList.add('active');
     }
 
-    // displayWinner
-
-    //displayDraw
-
-    // handleGameReset
     const handleGameReset = () => {
         init();
     }
-    
 
-    // showModal
     const displayGameOver = (win = false, winner = null) => {
         if (win) {
             winnerIcon.innerHTML = playerIcons[winner.marker];
@@ -300,7 +245,7 @@ function createDisplayController () {
             gameOverMessage.innerText = `THE GAME IS DRAW`;
         }
         gameOverModal.showModal();
-        closeModalBtn.addEventListener('click', closeModal, {once: true});
+        gameOverModal.addEventListener('click', closeModal, {once: true});
     }
 
     const closeModal = () => {
