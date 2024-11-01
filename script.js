@@ -239,6 +239,7 @@ function createDisplayController () {
             winnerIcon.innerHTML = playerIcons[winner.marker];
             gameOverMessage.innerText = `${winner.name.toUpperCase()} WINS THE GAME`;
             winnerIcon.style.display = 'block';
+            winnerIcon.children[0].style.width = 'auto'; // a quick fix
         }
         else {
             winnerIcon.style.display = 'none';
